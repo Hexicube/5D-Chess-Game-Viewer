@@ -25,6 +25,8 @@ private val LIGHT_BG = Color.ORANGE.darker()
 
 private val GREEN_BG = Color(0, 200, 0)
 private val GREENDARK_BG = Color(0, 150, 0)
+private val BLUE_BG = Color(150, 150, 255)
+private val BLUEDARK_BG = Color(100, 100, 255)
 
 private val PIECE_IMG = ImageIO.read(File(Board::class.java.getResource("/pieces.png").toURI()))
 
@@ -63,11 +65,16 @@ fun renderTile(type: Pair<Piece,Boolean>?, x: Int, y: Int, board: Board): JPanel
         (x+y)%2 == 0 -> DARK_BG
         else -> LIGHT_BG
     }
-    if ((sq == board.moveStart) || (sq == board.moveEnd)) {
-        if (p.background == DARK_BG) p.background = GREENDARK_BG
-        else p.background = GREEN_BG
+    if (sq == board.moveStart || sq == board.moveEnd) {
+        if (board.moveStart != null && board.moveEnd != null) {
+            if (p.background == DARK_BG) p.background = GREENDARK_BG
+            else p.background = GREEN_BG
+        }
+        else {
+            if (p.background == DARK_BG) p.background = BLUEDARK_BG
+            else p.background = BLUE_BG
+        }
     }
-    // TODO: render piece as icon
     return p
 }
 
@@ -113,8 +120,8 @@ fun main(args: Array<String>) {
     gameContentArea.layout = BoxLayout(gameContentArea, BoxLayout.Y_AXIS)
     val gamePane = JScrollPane(gameContentArea)
     
-    var curTurn = 0
-    var curPly = true
+    var curTurn = 1
+    var curPly = false
     theGame.states.forEach { state ->
         val stateInfo = Triple(curTurn, curPly, state)
         val btn = sizedButton("$curTurn${if (curPly) "B" else "W"}.", 50, 24)
@@ -147,7 +154,7 @@ fun main(args: Array<String>) {
             gamePane.validate()
             gamePane.horizontalScrollBar.value = Int.MAX_VALUE
         }
-        if (curTurn == 0) btn.actionListeners.last().actionPerformed(null)
+        if (curTurn == 1 && curPly == false) btn.actionListeners.last().actionPerformed(null)
         if (curPly) curTurn++
         curPly = !curPly
         gameStateLineArea.add(btn)

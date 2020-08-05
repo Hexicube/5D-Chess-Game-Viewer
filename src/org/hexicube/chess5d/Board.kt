@@ -11,11 +11,14 @@ enum class Piece (val identifier: Char, val imgX: Int) {
     DRAGON('D', 7);
 }
 
+data class BoardTarget(val time: Int, val line: Int, val ply: Boolean, val x: Int, val y: Int)
+
 data class Board(var time: Int, var line: Int, var ply: Boolean, val pieces: Array<Array<Pair<Piece, Boolean>?>>) {
     private var locked = false
     private fun lock() { locked = true }
     var moveStart: Pair<Int,Int>? = null
     var moveEnd: Pair<Int,Int>? = null
+    var moveTravelData: BoardTarget? = null
     
     fun print() {
         println("+--+--+--+--+--+--+--+--+")
@@ -87,7 +90,7 @@ data class Board(var time: Int, var line: Int, var ply: Boolean, val pieces: Arr
         }
     }
     
-    fun moveFromBoard(file: Int, rank: Int, type: Piece) {
+    fun moveFromBoard(file: Int, rank: Int, type: Piece, target: BoardTarget) {
         if (locked) throw IllegalStateException("Illegal move on L$line T$time ${(file+'a'.toInt()).toChar()}$rank: Board locked")
         
         val p = pieces[rank][file] ?: throw IllegalArgumentException("Illegal move on L$line T$time ${(file+'a'.toInt()).toChar()}$rank: No piece to move")
@@ -97,6 +100,7 @@ data class Board(var time: Int, var line: Int, var ply: Boolean, val pieces: Arr
         if (ply) time++
         ply = !ply
         moveStart = Pair(file, rank)
+        moveTravelData = target
         lock()
     }
     
@@ -145,9 +149,15 @@ data class Board(var time: Int, var line: Int, var ply: Boolean, val pieces: Arr
         return result
     }
     
-    fun clone(): Board {
-        return Board(time, line, ply, pieces.map { outer ->
+    fun clone(keepMove: Boolean = false): Board {
+        val b = Board(time, line, ply, pieces.map { outer ->
             outer.map { it -> if (it == null) null else Pair(it.first, it.second) }.toTypedArray()
         }.toTypedArray())
+        if (keepMove) {
+            b.moveStart = moveStart
+            b.moveEnd = moveEnd
+            b.moveTravelData = moveTravelData
+        }
+        return b
     }
 }

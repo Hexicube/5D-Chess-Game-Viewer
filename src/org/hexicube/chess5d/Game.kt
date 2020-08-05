@@ -34,8 +34,10 @@ data class Game(val input: String) {
                     if (availLines.isNotEmpty()) println("WARN: Illegal turn advance into turn ${currentTurn+1}, the following lines need a move: ${availLines.joinToString()}")
                     // workingState.timelines[0]!!.last().print()
                     if (!ply) throw IllegalStateException("Illegal turn advance into turn ${currentTurn+1}, only done one ply.")
-                    states.add(workingState)
-                    workingState = workingState.clone()
+                    if (currentTurn != 0) {
+                        states.add(workingState)
+                        workingState = workingState.clone()
+                    }
                     currentTurn++
                     ply = false
                     dataStream.removeAt(0)

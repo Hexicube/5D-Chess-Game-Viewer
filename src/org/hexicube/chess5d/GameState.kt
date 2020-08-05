@@ -493,7 +493,7 @@ class GameState {
                 // TODO: check for obstructions
                 
                 val newSourceBoard = sourceBoard.clone()
-                newSourceBoard.moveFromBoard(sourceX, sourceY, thePiece)
+                newSourceBoard.moveFromBoard(sourceX, sourceY, thePiece, BoardTarget(targTime, targLine, ply, targX, targY))
                 timelines[newSourceBoard.line]!!.add(newSourceBoard)
                 val newTargetBoard = targBoard.clone()
                 newTargetBoard.moveToBoard(targX, targY, thePiece, isCapture)
@@ -531,7 +531,7 @@ class GameState {
     fun clone(): GameState {
         val newState = GameState()
         timelines.onEach {
-            newState.timelines[it.key] = ArrayList(it.value.map { it.clone() })
+            newState.timelines[it.key] = ArrayList(it.value.map { it.clone(true) })
         }
         return newState
     }
