@@ -114,46 +114,6 @@ fun main(args: Array<String>) {
     Board.pieces = Array<Array<Pair<Piece, Boolean>?>> = A 2D array of all pieces in the format (Type, IsBlack), nullable for blank spots
     */
     
-    // hexicube vs someone
-    /*val theGame = Game("""
-        1. c4 .. e6
-        2. Nf3 .. Nc6
-        3. g3 .. Nb4
-        4. Qb3 .. h5
-        5. Bg2 .. Qe7
-        6. O-O .. Na6
-        7. d4 .. Nf6
-        8. Ne5 .. Ne4
-        9. Bxe4 .. h4
-        10. g4 .. Qg5
-        11. Bxg5 .. Bd6
-        12. f4 .. L0d6 Bx T10d4
-        13. Nf3; - .. Be3
-        14. Bxe3; - .. Rh6
-        15. L0e5 Nx L-1e7 .. Bxe7; O-O
-        16. Bxh6; f5 .. Bf8; exf
-        17. Bxb7; Bxf5 .. Bd6; Re8
-        18. Bxc8; Bd8  .. Rxc8; Rxd8
-        19. Bxg7; Qe3
-    """.trimIndent())*/
-    
-    // lexi vs computersmoke (tourney final)
-    /*val theGame = Game("""
-        1. e4 .. c6
-        2. c3 .. Nf6
-        3. e5 .. Ne4
-        4. Qf3 .. Ng5
-        5. Qh5 .. e6
-        6. d4 .. Qc7
-        7. Bxg5 .. L0c7 Qx T5e5
-        8. Qe2; - .. Qdc7
-        9. d4; - .. Qxe2
-        10. Bxe2; Qh4 .. Ne4; d5
-        11. Be3; Qf4 .. d5; Nd7
-        12. Nf3; Bd8 .. L-1c7 Qx L0d8
-        13. L0f4 Qx T8f7
-    """.trimIndent())*/
-    
     var theGame: Game?
     
     do {

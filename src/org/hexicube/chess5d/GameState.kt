@@ -446,7 +446,7 @@ class GameState {
                     }
                     Piece.QUEEN -> {
                         var expect = 0
-                        if (diffX != 0) expect = diffX
+                        if (diffX != 0) expect = Math.abs(diffX)
                         if (diffY != 0) {
                             if (expect != 0 && Math.abs(diffY) != expect) throw IllegalArgumentException("Unable to interpret move: Queen attempted to move incorrectly")
                             if (expect == 0) expect = Math.abs(diffY)
