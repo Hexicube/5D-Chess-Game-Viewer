@@ -245,12 +245,15 @@ class GameState {
         return this
     }
     
+    var mostRecentMove = ""
     fun withMove(move: ArrayList<String>, ply: Boolean, lines: ArrayList<Int>): GameState {
         if (move.count() == 0) return this // should not happen, but just in case it does...
         print(move.joinToString(" "))
+        mostRecentMove = move.joinToString(" ")
         when (move.count()) {
             1 -> {
                 if (move[0] == "#") return this // checkmate declared, effectively a null move
+                if (lines.isEmpty()) throw IllegalStateException("Unable to interpret move: No lines left to move on")
                 val line = lines.removeAt(0)
                 if (move[0] == "-") return this // pass on most recent
                 val tl = timelines[line] ?: throw IllegalStateException("Unable to interpret move: Missing timeline L$line")
@@ -259,6 +262,7 @@ class GameState {
                 return withBasicMove(move[0], ply, board.clone())
             }
             2 -> {
+                if (lines.isEmpty()) throw IllegalStateException("Unable to interpret move: No lines left to move on")
                 // timeline specified due to options, but otherwise a basic move
                 if (!move[0].startsWith('L')) throw IllegalArgumentException("Unable to interpret move: First segment is not a timeline")
                 val line = move[0].substring(1).toInt()
@@ -268,6 +272,7 @@ class GameState {
                 return withBasicMove(move[1], ply, board.clone())
             }
             3 -> {
+                if (lines.isEmpty()) throw IllegalStateException("Unable to interpret move: No lines left to move on")
                 // time travel or cross-line move
                 // example: L0d6 Bx T10d4
                 
@@ -339,10 +344,11 @@ class GameState {
                     targX = targStr[0] - 'a'
                     targY = targStr[1] - '1'
                 }
-                val targBoard = timelines[targLine]!!.first {
+                val targTimeline = timelines[targLine] ?: throw IllegalArgumentException("Unable to interpret move: Missing timeline L$targLine")
+                val targBoard = targTimeline.first {
                     it.ply == ply && it.time == targTime
                 }
-                val targLineLast = timelines[targLine]!!.last()
+                val targLineLast = targTimeline.last()
                 val isTimeTravel = targBoard != targLineLast
                 
                 val diffX = targX - sourceX
@@ -493,10 +499,10 @@ class GameState {
                 // TODO: check for obstructions
                 
                 val newSourceBoard = sourceBoard.clone()
-                newSourceBoard.moveFromBoard(sourceX, sourceY, thePiece, BoardTarget(targTime, targLine, ply, targX, targY))
+                newSourceBoard.moveFromBoard(sourceX, sourceY, thePiece, BoardTarget(targTime, targLine, targX, targY))
                 timelines[newSourceBoard.line]!!.add(newSourceBoard)
                 val newTargetBoard = targBoard.clone()
-                newTargetBoard.moveToBoard(targX, targY, thePiece, isCapture)
+                newTargetBoard.moveToBoard(targX, targY, thePiece, isCapture, BoardTarget(sourceBoard.time, sourceBoard.line, sourceX, sourceY))
                 if (isTimeTravel) {
                     // make a new line
                     val newLine = if (ply) (timelines.keys.min()!!-1) else (timelines.keys.max()!!+1)

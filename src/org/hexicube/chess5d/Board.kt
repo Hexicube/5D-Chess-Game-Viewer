@@ -11,7 +11,7 @@ enum class Piece (val identifier: Char, val imgX: Int) {
     DRAGON('D', 7);
 }
 
-data class BoardTarget(val time: Int, val line: Int, val ply: Boolean, val x: Int, val y: Int)
+data class BoardTarget(val time: Int, val line: Int, val x: Int, val y: Int)
 
 data class Board(var time: Int, var line: Int, var ply: Boolean, val pieces: Array<Array<Pair<Piece, Boolean>?>>) {
     private var locked = false
@@ -104,7 +104,7 @@ data class Board(var time: Int, var line: Int, var ply: Boolean, val pieces: Arr
         lock()
     }
     
-    fun moveToBoard(file: Int, rank: Int, type: Piece, capture: Boolean) {
+    fun moveToBoard(file: Int, rank: Int, type: Piece, capture: Boolean, target: BoardTarget) {
         if (locked) throw IllegalStateException("Illegal move on L$line T$time ${(file+'a'.toInt()).toChar()}$rank: Board locked")
         
         val p = pieces[rank][file]
@@ -119,6 +119,7 @@ data class Board(var time: Int, var line: Int, var ply: Boolean, val pieces: Arr
         if (ply) time++
         ply = !ply
         moveEnd = Pair(file, rank)
+        moveTravelData = target
         lock()
     }
     
