@@ -104,7 +104,25 @@ fun renderTile(type: Pair<Piece,Boolean>?, x: Int, y: Int, board: Board): JPanel
     return p
 }
 
+fun constructErr(theGame: Game): JPanel {
+    val p = JPanel()
+    p.preferredSize = Dimension(350, 300)
+    p.layout = BoxLayout(p, BoxLayout.Y_AXIS)
+    p.add(JLabel("Error on move: ${theGame.erroringMove}"))
+    p.add(JLabel("Last successful ply: ${theGame.lastSuccessful}"))
+    p.add(JScrollPane(JTextArea("${theGame.error!!.message}\n${theGame.error!!.stackTrace.joinToString("\n")}")))
+    p.add(JLabel("Show states up to last successful ply?"))
+    return p
+}
+
 fun main(args: Array<String>) {
+    // gross, but it means it's always visible in the taskbar
+    val frame = JFrame("5D Chess Viewer")
+    frame.defaultCloseOperation = JFrame.EXIT_ON_CLOSE
+    frame.size = Dimension(800, 600)
+    frame.isVisible = true
+    frame.setLocationRelativeTo(null)
+    
     /*
     Game.states = Array<GameState>
     GameState.timelines = HashMap<Int, ArrayList<Board>>
@@ -120,26 +138,31 @@ fun main(args: Array<String>) {
         val input = JTextArea()
         val pane = JScrollPane(input)
         pane.preferredSize = Dimension(150, 400)
-        val opt = JOptionPane.showConfirmDialog(null, pane, "Input transcript", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE)
+        val opt = JOptionPane.showConfirmDialog(frame, pane, "Input transcript", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE)
         if (opt != JOptionPane.OK_OPTION) System.exit(0)
     
         theGame = Game(input.text)
         if (theGame.error != null) {
-            JOptionPane.showMessageDialog(null, "Error on move: ${theGame.erroringMove}\n${theGame.error!!.message}\n${theGame.error!!.stackTrace.joinToString("\n")}")
-            theGame = null
+            val opt = JOptionPane.showConfirmDialog(frame, constructErr(theGame), "Parse Error", JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE)
+            when (opt) {
+                JOptionPane.YES_OPTION -> {}
+                JOptionPane.NO_OPTION -> theGame = null
+                else -> System.exit(0)
+            }
+            // theGame = null
         }
-    }
-    while (theGame == null)
-    
+    } while (theGame == null)
+
     val gameStateLineArea = JPanel()
     gameStateLineArea.layout = BoxLayout(gameStateLineArea, BoxLayout.X_AXIS)
     val gameStateLine = JScrollPane(gameStateLineArea)
+    gameStateLine.minimumSize = Dimension(999999, 42)
     gameStateLine.preferredSize = Dimension(999999, 42)
     gameStateLine.maximumSize = Dimension(999999, 42)
-    
+
     val listOfLines = ArrayList<Board>()
     var smallestLine = 0
-    
+
     val gameContentArea = object : JPanel() {
         override fun paint(g: Graphics?) {
             super.paint(g)
@@ -152,31 +175,31 @@ fun main(args: Array<String>) {
                 val startTX = it.moveStart!!.first
                 val startBY = it.line - smallestLine
                 val startTY = it.moveStart!!.second
-                
+            
                 // println("$startBX-$startTX : $startBY-$startTY")
-                
-                val srcX = startBX * (BOARD_SIZE + 10) + (startTX) * TILE_SIZE + TILE_SIZE + TILE_SIZE/2 + 10
-                val srcY = startBY * (BOARD_SIZE + 10) + (7-startTY) * TILE_SIZE + TILE_SIZE + TILE_SIZE/2
-                
+            
+                val srcX = startBX * (BOARD_SIZE + 10) + (startTX) * TILE_SIZE + TILE_SIZE + TILE_SIZE / 2 + 10
+                val srcY = startBY * (BOARD_SIZE + 10) + (7 - startTY) * TILE_SIZE + TILE_SIZE + TILE_SIZE / 2
+            
                 val endBX = it.moveTravelData!!.time * 2 - if (it.ply) 1 else 0
                 val endTX = it.moveTravelData!!.x
                 val endBY = it.moveTravelData!!.line - smallestLine
                 val endTY = it.moveTravelData!!.y
-    
+            
                 // println("$endBX-$endTX : $endBY-$endTY")
-                
-                val dstX = endBX * (BOARD_SIZE + 10) + (endTX) * TILE_SIZE + TILE_SIZE + TILE_SIZE/2 + 10
-                val dstY = endBY * (BOARD_SIZE + 10) + (7-endTY) * TILE_SIZE + TILE_SIZE + TILE_SIZE/2
-                
+            
+                val dstX = endBX * (BOARD_SIZE + 10) + (endTX) * TILE_SIZE + TILE_SIZE + TILE_SIZE / 2 + 10
+                val dstY = endBY * (BOARD_SIZE + 10) + (7 - endTY) * TILE_SIZE + TILE_SIZE + TILE_SIZE / 2
+            
                 // println("$srcX:$srcY -> $dstX:$dstY")
-                
+            
                 g.drawLine(srcX, srcY, dstX, dstY)
             }
         }
     }
     gameContentArea.layout = BoxLayout(gameContentArea, BoxLayout.Y_AXIS)
     val gamePane = JScrollPane(gameContentArea)
-    
+
     var curTurn = 1
     var curPly = false
     theGame.states.forEach { state ->
@@ -189,27 +212,27 @@ fun main(args: Array<String>) {
             }
             btn.background = GREENDARK_BG
             btn.isEnabled = false
-            
+        
             gameContentArea.removeAll()
             listOfLines.clear()
             smallestLine = 0
-            
+        
             stateInfo.third.timelines.toSortedMap().values.forEach {
                 val linePane = JPanel()
                 linePane.layout = BoxLayout(linePane, BoxLayout.X_AXIS)
-                for (a in 2 until (it[0].time * 2 + if (it[0].ply) 1 else 0)) linePane.add(Box.createRigidArea(Dimension(BOARD_SIZE+10, BOARD_SIZE)))
-                linePane.add(Box.createRigidArea(Dimension(10,10)))
+                for (a in 2 until (it[0].time * 2 + if (it[0].ply) 1 else 0)) linePane.add(Box.createRigidArea(Dimension(BOARD_SIZE + 10, BOARD_SIZE)))
+                linePane.add(Box.createRigidArea(Dimension(10, 10)))
                 for (board in it) {
                     smallestLine = Math.min(smallestLine, board.line)
                     renderBoard(linePane, board)
-                    linePane.add(Box.createRigidArea(Dimension(10,10)))
+                    linePane.add(Box.createRigidArea(Dimension(10, 10)))
                     if (board.moveTravelData != null && board.moveStart != null) listOfLines.add(board)
                 }
                 linePane.add(Box.createHorizontalGlue())
                 gameContentArea.add(linePane)
                 gameContentArea.add(Box.createVerticalStrut(10))
             }
-            
+        
             gameContentArea.add(Box.createVerticalGlue())
             gamePane.validate()
             gamePane.horizontalScrollBar.value = Int.MAX_VALUE
@@ -220,13 +243,10 @@ fun main(args: Array<String>) {
         curPly = !curPly
         gameStateLineArea.add(btn)
     }
-    
-    val frame = JFrame("5D Chess Viewer")
+
     frame.contentPane.layout = BoxLayout(frame.contentPane, BoxLayout.Y_AXIS)
     frame.add(gameStateLine)
     frame.add(gamePane)
-    
-    frame.defaultCloseOperation = JFrame.EXIT_ON_CLOSE
-    frame.isVisible = true
-    frame.size = Dimension(800, 600)
+    frame.revalidate()
+    frame.paint(frame.graphics)
 }

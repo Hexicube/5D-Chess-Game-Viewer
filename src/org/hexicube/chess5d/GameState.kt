@@ -345,9 +345,9 @@ class GameState {
                     targY = targStr[1] - '1'
                 }
                 val targTimeline = timelines[targLine] ?: throw IllegalArgumentException("Unable to interpret move: Missing timeline L$targLine")
-                val targBoard = targTimeline.first {
+                val targBoard = targTimeline.firstOrNull {
                     it.ply == ply && it.time == targTime
-                }
+                } ?: throw IllegalArgumentException("Unable to interpret move: Missing time T$targTime on line L$targLine")
                 val targLineLast = targTimeline.last()
                 val isTimeTravel = targBoard != targLineLast
                 
